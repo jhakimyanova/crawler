@@ -1,66 +1,18 @@
 package scrape
 
 import (
-	"context"
 	"fmt"
+	"io"
 	"log"
-	"net/http"
 	"net/url"
 	"path"
-	"strconv"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-const PAGE_SIZE = 60
-
-func Scrape(parCtx context.Context, urlStr string) error {
-	page := 1
-	parsedURL, err := url.Parse(urlStr)
-	if err != nil {
-		return fmt.Errorf("failed to parse url %s: %w", urlStr, err)
-	}
-	queryParams := parsedURL.Query()
-	for {
-		queryParams.Set("_pgn", strconv.Itoa(page))
-		parsedURL.RawQuery = queryParams.Encode()
-		log.Printf("Scrapping %s", parsedURL)
-		ctx, cancel := context.WithTimeout(parCtx, 5*time.Second)
-		defer cancel()
-		count, err := ScrapePage(ctx, parsedURL.String())
-		if err != nil {
-			log.Printf("failed to scrape %d page: %v", page, err)
-		}
-		fmt.Println(count)
-		if count < PAGE_SIZE {
-			break
-		}
-		page++
-	}
-	return nil
-}
-
-func ScrapePage(ctx context.Context, url string) (int, error) {
-	// Create the HTTP request with context
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create HTTP GET request: %w", err)
-	}
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return 0, fmt.Errorf("failed to make request: %w", err)
-	}
-	defer resp.Body.Close() // Ensure the response body is closed to free resources
-
-	if resp.StatusCode != 200 {
-		return 0, fmt.Errorf("status code error: %d %s", resp.StatusCode, resp.Status)
-	}
+func ParseDocument(r io.Reader, out chan *Product) (int, error) {
 	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create document from HTTP response body: %w", err)
 	}
@@ -68,7 +20,8 @@ func ScrapePage(ctx context.Context, url string) (int, error) {
 	// Find and iterate through each product
 	items := doc.Find("ul.srp-results li.s-item").Each(func(i int, s *goquery.Selection) {
 		p, _ := ParseProductHTML(s)
-		err := CreateProductFile("data", p)
+		out <- p
+		// err := CreateProductFile("data", p)
 		if err != nil {
 			log.Printf("failed to create product file: %s", err)
 		}
