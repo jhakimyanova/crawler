@@ -16,7 +16,7 @@ const (
 
 func main() {
 	var condition scrape.Condition
-	flag.Var(&condition, "condition", "Specifies the condition of the product. Possible values: any, new, used, unknown. Default: any")
+	flag.Var(&condition, "condition", "Specifies the condition of the product.\nPossible values: any, new, used, unknown. Default: any")
 	flag.Parse()
 
 	startTime := time.Now()
