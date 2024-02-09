@@ -3,14 +3,23 @@ package scrape
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path"
+	"sync"
 )
 
 func SaveProductsData(dir string, out chan *Product) {
+	var wg sync.WaitGroup
 	for p := range out {
-		CreateProductFile(dir, p)
+		p := p
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			CreateProductFile(dir, p)
+		}()
 	}
+	wg.Wait()
 }
 
 // CreateProductFile creates a file containing a JSON with the product's data
@@ -25,6 +34,7 @@ func CreateProductFile(dir string, p *Product) error {
 	if err != nil {
 		return fmt.Errorf("failed marshal JSON for %v product: %w", p, err)
 	}
+	log.Printf("DEBUG: writing file %s", fileName)
 	_, err = f.Write(jsonData)
 	if err != nil {
 		return fmt.Errorf("failed to write product data to %s file: %w", fileName, err)

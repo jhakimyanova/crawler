@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	"github.com/jhakimyanova/crawler/scrape"
 )
 
@@ -11,7 +14,9 @@ const (
 )
 
 func main() {
+	startTime := time.Now()
 	s := scrape.Scraper{URL: URL, AllowedDomain: ALLOWED_DOMAIN}
 	out := s.ScrapeProducts()
 	scrape.SaveProductsData(PRODUCT_FILES_DIR, out)
+	log.Printf("DEBUG: Elapsed scraping time: %s", time.Since(startTime))
 }

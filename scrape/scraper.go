@@ -24,6 +24,10 @@ func (s Scraper) ScrapeProducts() chan *Product {
 		)
 		// Random user agent to bypass anti-crawler protection
 		extensions.RandomUserAgent(c)
+
+		// Extract data from each page
+		c.OnHTML("ul.srp-results li.s-item", ParseProductHTML(out))
+
 		// Handle pagination
 		c.OnHTML("a.pagination__next", func(e *colly.HTMLElement) {
 			nextPage := e.Attr("href")
@@ -31,8 +35,6 @@ func (s Scraper) ScrapeProducts() chan *Product {
 				c.Visit(e.Request.AbsoluteURL(nextPage))
 			}
 		})
-		// Extract data from each page
-		c.OnHTML("ul.srp-results li.s-item", ParseProductHTML(out))
 
 		// Handle errors
 		c.OnError(func(r *colly.Response, err error) {
