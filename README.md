@@ -36,11 +36,12 @@ Usage of ./crawler:
         Condition: new, used, unknown
 ```
 
-## Building the project
+## Build the project
 Execute the following command to build the project:
 ```
 make build
 ```
+## Run the project
 Execute the following command to run the project:
 ```
 ./crawler

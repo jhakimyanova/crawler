@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	ALLOWED_DOMAIN    = "www.ebay.com"
-	URL               = "https://www.ebay.com/sch/i.html?_ssn=garlandcomputer"
-	PRODUCT_FILES_DIR = "data"
+	AllowedDomain   = "www.ebay.com"
+	URL             = "https://www.ebay.com/sch/i.html?_ssn=garlandcomputer"
+	ProductFilesDir = "data"
 )
 
 func main() {
@@ -20,8 +20,8 @@ func main() {
 	flag.Parse()
 
 	startTime := time.Now()
-	s := scrape.Scraper{URL: URL, AllowedDomain: ALLOWED_DOMAIN}
+	s := scrape.Scraper{URL: URL, AllowedDomain: AllowedDomain}
 	out := s.ScrapeProducts(condition)
-	scrape.SaveProductsData(PRODUCT_FILES_DIR, out)
+	scrape.SaveProductsData(ProductFilesDir, out)
 	log.Printf("DEBUG: Elapsed scraping time: %s", time.Since(startTime))
 }
