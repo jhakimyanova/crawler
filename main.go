@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
 
@@ -14,9 +15,13 @@ const (
 )
 
 func main() {
+	var condition scrape.Condition
+	flag.Var(&condition, "condition", "Condition: new, used, unknown")
+	flag.Parse()
+
 	startTime := time.Now()
 	s := scrape.Scraper{URL: URL, AllowedDomain: ALLOWED_DOMAIN}
-	out := s.ScrapeProducts()
+	out := s.ScrapeProducts(condition)
 	scrape.SaveProductsData(PRODUCT_FILES_DIR, out)
 	log.Printf("DEBUG: Elapsed scraping time: %s", time.Since(startTime))
 }

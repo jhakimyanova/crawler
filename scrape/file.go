@@ -7,19 +7,23 @@ import (
 	"os"
 	"path"
 	"sync"
+	"sync/atomic"
 )
 
 func SaveProductsData(dir string, out chan *Product) {
 	var wg sync.WaitGroup
+	var count atomic.Int32
 	for p := range out {
 		p := p
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			CreateProductFile(dir, p)
+			count.Add(1)
 		}()
 	}
 	wg.Wait()
+	log.Printf("DEBUG: Written %d files", count.Load())
 }
 
 // CreateProductFile creates a file containing a JSON with the product's data

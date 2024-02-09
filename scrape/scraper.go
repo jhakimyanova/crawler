@@ -1,11 +1,66 @@
 package scrape
 
 import (
+	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
 )
+
+type Condition int
+
+const (
+	ConditionAny Condition = iota
+	ConditionNew
+	ConditionUsed
+	ConditionUnknown
+)
+
+func (c *Condition) String() string {
+	switch *c {
+	case ConditionNew:
+		return "new"
+	case ConditionUsed:
+		return "used"
+	case ConditionUnknown:
+		return "unknown"
+	default:
+		return "any"
+	}
+}
+
+func (c *Condition) Set(value string) error {
+	switch value {
+	case "new":
+		*c = ConditionNew
+	case "used":
+		*c = ConditionUsed
+	case "unknown":
+		*c = ConditionUnknown
+	case "any":
+		*c = ConditionAny
+	default:
+		return fmt.Errorf("invalid condition: %s", value)
+	}
+	return nil
+}
+
+func (c Condition) SetQueryParam(q url.Values) {
+	var queryParam string
+	switch c {
+	case ConditionNew:
+		queryParam = "3"
+	case ConditionUsed:
+		queryParam = "4"
+	case ConditionUnknown:
+		queryParam = "10"
+	default:
+		return
+	}
+	q.Set("LH_ItemCondition", queryParam)
+}
 
 type Scraper struct {
 	AllowedDomain string
@@ -13,7 +68,7 @@ type Scraper struct {
 }
 
 // ScrapeProducts uses Colly to scrape products from a webpage
-func (s Scraper) ScrapeProducts() chan *Product {
+func (s Scraper) ScrapeProducts(conditionFilter Condition) chan *Product {
 	out := make(chan *Product, 1000)
 
 	go func() {
@@ -46,7 +101,16 @@ func (s Scraper) ScrapeProducts() chan *Product {
 		})
 
 		// Start scraping
-		err := c.Visit(s.URL)
+		parsedURL, err := url.Parse(s.URL)
+		if err != nil {
+			log.Printf("ERROR: failed to parse url %s: %v", s.URL, err)
+		}
+		queryParams := parsedURL.Query()
+		conditionFilter.SetQueryParam(queryParams)
+		parsedURL.RawQuery = queryParams.Encode()
+		s.URL = parsedURL.String()
+
+		err = c.Visit(s.URL)
 		if err != nil {
 			log.Printf("ERROR: failed visiting %s: %v", s.URL, err)
 		}
