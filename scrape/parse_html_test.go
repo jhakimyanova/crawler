@@ -1,24 +1,35 @@
 package scrape
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 )
 
 func TestParseProductHTML(t *testing.T) {
-	f, err := os.Open("test_ebay.html")
+	// Read mock data from file
+	mockData, err := os.ReadFile("test_ebay.html")
 	if err != nil {
-		t.Fatalf("failed to open file with test data: %v", err)
+		t.Fatalf("scrapeTitle() returned an error: %v", err)
 	}
-	defer f.Close()
+	// Setup a test server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write(mockData)
+	}))
+	defer ts.Close()
 
-	// Test ParseDocument with html response saved to a test file
-	out := make(chan *Product, 1000)
-	n, err := ParseDocument(f, out)
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
+	// Test scrapeTitle with the URL of the test server
+	fmt.Println(ts.URL)
+	s := Scraper{URL: ts.URL, AllowedDomain: "127.0.0.1"}
+	out := s.ScrapeProducts()
+	count := 0
+	for range out {
+		count++
 	}
-	if n != 60 {
-		t.Errorf("Expected %d Product items, got '%d'", 60, n)
+	if count != 25 {
+		t.Errorf("Expected %d Product items, got '%d'", 25, count)
 	}
 }

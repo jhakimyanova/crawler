@@ -7,6 +7,13 @@ import (
 	"path"
 )
 
+func SaveProductsData(dir string, out chan *Product) {
+	for p := range out {
+		CreateProductFile(dir, p)
+	}
+}
+
+// CreateProductFile creates a file containing a JSON with the product's data
 func CreateProductFile(dir string, p *Product) error {
 	fileName := path.Join(dir, fmt.Sprintf("%s.json", p.ID))
 	f, err := os.Create(fileName)
@@ -22,5 +29,6 @@ func CreateProductFile(dir string, p *Product) error {
 	if err != nil {
 		return fmt.Errorf("failed to write product data to %s file: %w", fileName, err)
 	}
+
 	return nil
 }
