@@ -27,7 +27,7 @@ func SaveProductsData(dir string, out chan *Product) {
 	log.Printf("DEBUG: Written %d files", count.Load())
 }
 
-// CreateProductFile creates a file containing a JSON with the product's data
+// CreateProductFile reads product data from the out channel and writes it to the result file in the specied directory
 func CreateProductFile(dir string, p *Product) error {
 	fileName := path.Join(dir, fmt.Sprintf("%s.json", p.ID))
 	f, err := os.Create(fileName)
