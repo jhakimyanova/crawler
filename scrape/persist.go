@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 )
 
+// SaveProductsData reads product data from the out channel and writes it to the result files
 func SaveProductsData(dir string, out chan *Product) {
 	var wg sync.WaitGroup
 	var count atomic.Int32
