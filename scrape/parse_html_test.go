@@ -24,7 +24,7 @@ func TestParseProductHTML(t *testing.T) {
 	// Test scrapeTitle with the URL of the test server
 	fmt.Println(ts.URL)
 	s := Scraper{URL: ts.URL, AllowedDomain: "127.0.0.1"}
-	out := s.ScrapeProducts()
+	out := s.ScrapeProducts(ConditionAny)
 	count := 0
 	for range out {
 		count++
